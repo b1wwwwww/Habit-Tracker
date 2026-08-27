@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  timezone      String    @default("UTC") @map("timezone")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  habits        Habit[]
+  habitLogs     HabitLog[]
+
+  @@map("users")
+}
+
+model Habit {
+  id              String        @id @default(cuid())
+  userId          String        @map("user_id")
+  title           String
+  description     String?
+  category        String
+  targetType      TargetType    @default(BOOLEAN) @map("target_type")
+  targetValue     Int           @default(1) @map("target_value")
+  frequencyType   FrequencyType @default(DAILY) @map("frequency_type")
+  frequencyDays   String[]      @default([]) @map("frequency_days")
+  reminderTime    String?       @map("reminder_time")
+  isArchived      Boolean       @default(false) @map("is_archived")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs            HabitLog[]
+
+  @@map("habits")
+}
+
+model HabitLog {
+  id            String      @id @default(cuid())
+  habitId       String      @map("habit_id")
+  userId        String      @map("user_id")
+  completedDate DateTime    @map("completed_date")
+  currentValue  Int         @default(0) @map("current_value")
+  status        LogStatus   @default(COMPLETED)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  habit         Habit       @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, completedDate])
+  @@map("habit_logs")
+}
+
+enum TargetType {
+  BOOLEAN
+  NUMERIC
+}
+
+enum FrequencyType {
+  DAILY
+  CUSTOM_DAYS
+  WEEKLY
+}
+
+enum LogStatus {
+  COMPLETED
+  PARTIAL
+  SKIPPED
+}
