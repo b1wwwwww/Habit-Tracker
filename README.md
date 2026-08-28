@@ -4,12 +4,12 @@ Aplikasi pelacakan kebiasaan modern dibangun dengan Next.js 15, React 19, Postgr
 
 ## Fitur Utama
 
-- 🔐 **Autentikasi** - Register/Login dengan JWT dan HttpOnly cookies
-- 🎯 **Manajemen Habit** - CRUD habit dengan frekuensi fleksibel (harian, mingguan, hari tertentu)
-- 📅 **Tracking Harian** - Dashboard hari ini dengan progress ring dan check-in mudah
-- 🔥 **Streak & Analytics** - Heatmap seperti GitHub, streak counter, completion rate
-- 🔔 **Pengingat** - Reminder time per habit (foundation untuk notifikasi)
-- 🌙 **Dark Mode** - Dukungan tema gelap/terang
+- **Autentikasi** - Register/Login dengan JWT dan HttpOnly cookies
+- **Manajemen Habit** - CRUD habit dengan frekuensi fleksibel (harian, mingguan, hari tertentu)
+- **Tracking Harian** - Dashboard hari ini dengan progress ring dan check-in mudah
+- **Streak & Analytics** - Heatmap seperti GitHub, streak counter, completion rate
+- **Pengingat** - Reminder time per habit (foundation untuk notifikasi)
+- **Dark Mode** - Dukungan tema gelap/terang
 
 ## Tech Stack
 
