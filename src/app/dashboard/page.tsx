@@ -10,10 +10,12 @@ import { HabitCard } from '@/components/habits/HabitCard'
 import { HabitForm } from '@/components/habits/HabitForm'
 import { Heatmap } from '@/components/analytics/Heatmap'
 import { StreaksList } from '@/components/analytics/StreakCard'
+import { NotificationBell } from '@/components/ui/NotificationBell'
 import { useAuth } from '@/hooks/useAuth'
 import { useHabits, HabitInput } from '@/hooks/useHabits'
 import { useDashboard } from '@/hooks/useDashboard'
 import { useStreaks } from '@/hooks/useAnalytics'
+import { useHeatmap } from '@/hooks/useAnalytics'
 import { formatDate } from '@/utils/helpers'
 import { cn } from '@/utils/helpers'
 
@@ -22,6 +24,7 @@ export default function DashboardPage() {
   const { habits, loading: habitsLoading, fetchHabits, createHabit, updateHabit, deleteHabit, checkIn, undoCheckIn } = useHabits()
   const { data: dashboard, loading: dashboardLoading, fetchDashboard } = useDashboard()
   const { streaks, loading: streaksLoading, fetchStreaks } = useStreaks()
+  const { heatmap, year: heatmapYear, loading: heatmapLoading, fetchHeatmap, changeYear } = useHeatmap()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showHabitForm, setShowHabitForm] = useState(false)
   const [editingHabit, setEditingHabit] = useState<HabitInput | null>(null)
@@ -41,8 +44,9 @@ export default function DashboardPage() {
       fetchHabits()
       fetchDashboard()
       fetchStreaks()
+      fetchHeatmap()
     }
-  }, [user, fetchHabits, fetchDashboard, fetchStreaks])
+  }, [user, fetchHabits, fetchDashboard, fetchStreaks, fetchHeatmap])
 
   const handleCreateHabit = async (data: { title: string; description?: string; category: string; targetType: 'BOOLEAN' | 'NUMERIC'; targetValue: number; frequencyType: 'DAILY' | 'CUSTOM_DAYS' | 'WEEKLY'; frequencyDays: string[]; reminderTime?: string | null }) => {
     await createHabit(data)
@@ -128,10 +132,7 @@ export default function DashboardPage() {
               </div>
               
               <div className="flex items-center gap-2">
-                <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 relative">
-                  <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
-                </button>
+                <NotificationBell />
                 <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700">
                   <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   <span className="text-sm font-medium text-gray-900 dark:text-white">{user.name || user.email}</span>
@@ -268,12 +269,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="mb-8">
-              <Heatmap data={({} as Record<string, number>)} year={new Date().getFullYear()} onYearChange={() => {}} />
-            </div>
-
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Streak Habit</h2>
-              <StreaksList streaks={streaks} />
+              <Heatmap data={heatmap} year={heatmapYear} onYearChange={changeYear} streaks={streaks} />
             </div>
           </>
         )}
