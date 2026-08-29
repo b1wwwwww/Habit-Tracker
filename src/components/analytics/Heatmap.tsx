@@ -129,8 +129,8 @@ export function Heatmap({ data, year, onYearChange, streaks = [] }: HeatmapProps
               <thead>
                 <tr>
                   <th className="text-right pr-3 font-medium text-gray-500 dark:text-gray-400">Minggu</th>
-                  {DAYS_SHORT.map((day) => (
-                    <th key={day} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-2 px-1">
+                  {DAYS_SHORT.map((day, i) => (
+                    <th key={i} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-2 px-1">
                       {day}
                     </th>
                   ))}
@@ -171,7 +171,7 @@ export function Heatmap({ data, year, onYearChange, streaks = [] }: HeatmapProps
                             >
                               {level.min > 0 && (
                                 <motion.span
-                                  className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-2 py-1 rounded shadow-lg"
+                                  className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs bg-gray-900 text-white px-2 py-1 rounded shadow-lg"
                                   initial={{ opacity: 0, y: 4 }}
                                   animate={{ opacity: 1, y: 0 }}
                                   exit={{ opacity: 0, y: -4 }}

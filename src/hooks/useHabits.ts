@@ -67,7 +67,9 @@ export function useHabits(): UseHabitsReturn {
         }
         return res.json()
       })
-      return extractHabit(result)
+      const habit = extractHabit(result)
+      setHabits((s) => [habit, ...s])
+      return habit
     },
     [createExecute]
   )
@@ -86,7 +88,9 @@ export function useHabits(): UseHabitsReturn {
         }
         return res.json()
       })
-      return extractHabit(result)
+      const habit = extractHabit(result)
+      setHabits((s) => s.map((h) => (h.id === id ? habit : h)))
+      return habit
     },
     [updateExecute]
   )
@@ -101,25 +105,54 @@ export function useHabits(): UseHabitsReturn {
         }
         return res.json()
       })
+      setHabits((s) => s.filter((h) => h.id !== id))
     },
     [deleteExecute]
   )
 
   const checkIn = useCallback(
     async (habitId: string, value: number) => {
-      const result = await checkInExecute(async () => {
-        const res = await fetch(`/api/habits/${habitId}/check-in`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ currentValue: value }),
+      // optimistic update: update local habit state immediately
+      const prev = habits
+      const prevSnapshot = [...prev]
+      setHabits((s) =>
+        s.map((h) => {
+          if (h.id !== habitId) return h
+          const currentValue = (h.todayLog?.currentValue || 0) + value
+          const isCompleted = h.targetType === 'NUMERIC' ? currentValue >= h.targetValue : true
+          return {
+            ...h,
+            todayLog: {
+              ...(h.todayLog || {}),
+              currentValue,
+              status: isCompleted ? 'COMPLETED' : 'PARTIAL',
+            },
+          }
         })
-        if (!res.ok) {
-          const err = await res.json()
-          throw new Error(err.error || 'Gagal check-in')
-        }
-        return res.json()
-      })
-      return extractLog(result)
+      )
+
+      try {
+        const result = await checkInExecute(async () => {
+          const res = await fetch(`/api/habits/${habitId}/check-in`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentValue: value }),
+          })
+          if (!res.ok) {
+            const err = await res.json()
+            throw new Error(err.error || 'Gagal check-in')
+          }
+          return res.json()
+        })
+        // update with server result
+        const log = extractLog(result)
+        setHabits((s) => s.map((h) => (h.id === habitId ? { ...h, todayLog: log } : h)))
+        return log
+      } catch (err) {
+        // revert optimistic update on error
+        setHabits(prevSnapshot)
+        throw err
+      }
     },
     [checkInExecute]
   )

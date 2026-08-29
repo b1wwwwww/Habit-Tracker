@@ -102,7 +102,14 @@ export default function DashboardPage() {
   }
 
   const handleCheckIn = async (habitId: string, value: number) => {
-    await checkIn(habitId, value)
+    try {
+      await checkIn(habitId, value)
+    } finally {
+      // refresh dashboard and habits in background to sync with server
+      fetchHabits().catch(() => {})
+      fetchDashboard().catch(() => {})
+      fetchStreaks().catch(() => {})
+    }
   }
 
   const handleUndo = async (habitId: string) => {
@@ -126,7 +133,7 @@ export default function DashboardPage() {
   const completedCount = dashboard?.summary.completed || 0
   const totalCount = dashboard?.summary.total || 0
   const progress = dashboard?.summary.progress || 0
-  const todayHabits = dashboard?.habits || []
+  const todayHabits = (habits && habits.length > 0) ? habits : (dashboard?.habits || [])
   const dueToday = todayHabits.filter(h => h.isDueToday)
   const completedToday = dueToday.filter(h => h.todayLog?.status === 'COMPLETED').length
 

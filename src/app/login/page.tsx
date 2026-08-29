@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginPage() {
+  const MotionButton = motion(Button)
   const router = useRouter()
   const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
@@ -125,7 +126,7 @@ export default function LoginPage() {
                 </div>
               </motion.div>
 
-              <motion.component(Button)
+              <MotionButton
                 type="submit"
                 className="w-full py-3"
                 initial={{ opacity: 0, y: 10 }}
@@ -135,7 +136,7 @@ export default function LoginPage() {
                 whileTap={{ scale: 0.98 }}
               >
                 Masuk
-              </motion.component(Button)>
+              </MotionButton>
             </form>
 
             <motion.p
