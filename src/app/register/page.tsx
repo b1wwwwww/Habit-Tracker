@@ -20,6 +20,7 @@ const TIMEZONES = [
 ]
 
 export default function RegisterPage() {
+  const MotionButton = motion(Button)
   const router = useRouter()
   const { register: registerUser } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
@@ -165,19 +166,17 @@ export default function RegisterPage() {
                 </datalist>
               </motion.div>
 
-              <motion.button
+              <MotionButton
                 type="submit"
-                className="w-full"
+                className="w-full py-3"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Button type="submit" className="w-full py-3">
-                  Daftar
-                </Button>
-              </motion.button>
+                Daftar
+              </MotionButton>
             </form>
 
             <motion.p

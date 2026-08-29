@@ -125,19 +125,17 @@ export default function LoginPage() {
                 </div>
               </motion.div>
 
-              <motion.button
+              <motion.component(Button)
                 type="submit"
-                className="w-full"
+                className="w-full py-3"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Button type="submit" className="w-full py-3">
-                  Masuk
-                </Button>
-              </motion.button>
+                Masuk
+              </motion.component(Button)>
             </form>
 
             <motion.p
