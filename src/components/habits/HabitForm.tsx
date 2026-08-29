@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { X, CalendarDays, Clock } from 'lucide-react'
@@ -21,6 +21,7 @@ interface HabitFormProps {
 }
 
 export function HabitForm({ isOpen, onClose, onSubmit, initialData, loading }: HabitFormProps) {
+  const [serverError, setServerError] = useState('')
   const isEditing = !!initialData
 
   const {
@@ -105,8 +106,14 @@ export function HabitForm({ isOpen, onClose, onSubmit, initialData, loading }: H
   }
 
   const onFormSubmit = async (data: HabitInput) => {
-    await onSubmit(data)
-    onClose()
+    setServerError('')
+    try {
+      await onSubmit(data)
+      onClose()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal membuat habit'
+      setServerError(msg)
+    }
   }
 
   return (
@@ -117,6 +124,11 @@ export function HabitForm({ isOpen, onClose, onSubmit, initialData, loading }: H
       className="max-w-md"
     >
       <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
+        {serverError && (
+          <div className="p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 text-sm">
+            {serverError}
+          </div>
+        )}
         <Input
           label="Nama Habit *"
           placeholder="Contoh: Minum Air 2L"

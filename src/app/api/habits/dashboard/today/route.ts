@@ -110,6 +110,8 @@ export async function GET() {
       }
     })
 
+    console.log(`GET /api/habits/dashboard/today: returning ${habitsWithStatus.length} habits for user ${session.userId}`)
+    habitsWithStatus.forEach(h => console.log(' -', h.title, h.id, 'todayLog=', !!h.todayLog))
     const completed = habitsWithStatus.filter((h) => h.todayLog?.status === 'COMPLETED').length
     const total = habitsWithStatus.length
 

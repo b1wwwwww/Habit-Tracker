@@ -7,11 +7,13 @@ import { loginSchema } from '@/lib/validations'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const validatedData = loginSchema.parse(body)
+    const validatedDataRaw = loginSchema.parse(body)
+    const validatedData = {
+      ...validatedDataRaw,
+      email: validatedDataRaw.email.trim().toLowerCase(),
+    }
 
-    const user = await prisma.user.findUnique({
-      where: { email: validatedData.email },
-    })
+    const user = await prisma.user.findUnique({ where: { email: validatedData.email } })
 
     if (!user) {
       return NextResponse.json(

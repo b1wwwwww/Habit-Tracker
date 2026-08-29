@@ -26,11 +26,24 @@ export async function GET() {
       },
     })
 
-    const habitsWithStatus = habits.map((habit) => ({
-      ...habit,
-      todayLog: habit.logs[0] || null,
-      logs: undefined,
-    }))
+    console.log(`GET /api/habits: found ${habits.length} habits for user ${session.userId}`)
+    habits.forEach(h => console.log(' -', h.title, h.id))
+
+    const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+    const todayName = dayNames[new Date().getDay()]
+
+    const habitsWithStatus = habits.map((habit) => {
+      const isDueToday = habit.frequencyType === 'DAILY' ||
+        habit.frequencyType === 'WEEKLY' ||
+        (habit.frequencyType === 'CUSTOM_DAYS' && habit.frequencyDays?.includes(todayName))
+
+      return {
+        ...habit,
+        todayLog: habit.logs[0] || null,
+        isDueToday,
+        logs: undefined,
+      }
+    })
 
     return NextResponse.json({ habits: habitsWithStatus })
   } catch (error) {
@@ -49,6 +62,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = habitSchema.parse(body)
 
+    console.log('Create habit request by user:', session.userId)
     const habit = await prisma.habit.create({
       data: {
         ...validatedData,

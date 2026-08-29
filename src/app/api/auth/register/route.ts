@@ -7,13 +7,17 @@ import { registerSchema } from '@/lib/validations'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const validatedData = registerSchema.parse(body)
+    const validatedDataRaw = registerSchema.parse(body)
+    const validatedData = {
+      ...validatedDataRaw,
+      email: validatedDataRaw.email.trim().toLowerCase(),
+    }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: validatedData.email },
-    })
+    console.log('Register attempt for email:', validatedData.email)
+    const existingUser = await prisma.user.findUnique({ where: { email: validatedData.email } })
 
     if (existingUser) {
+      console.log('Existing user found for', validatedData.email)
       return NextResponse.json(
         { error: 'Email sudah terdaftar' },
         { status: 400 }
@@ -31,6 +35,7 @@ export async function POST(request: NextRequest) {
       },
       select: { id: true, name: true, email: true, timezone: true },
     })
+    console.log('Registered user:', user.email)
 
     const token = await createToken({
       userId: user.id,

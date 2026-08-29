@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'today' | 'analytics'>('today')
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -66,13 +67,34 @@ export default function DashboardPage() {
   }
 
   const handleCreateHabit = async (data: HabitInput) => {
-    await createHabit(data)
-    setShowHabitForm(false)
+    try {
+      await createHabit(data)
+      setShowHabitForm(false)
+      // show success toast
+      setToastMessage('Habit berhasil ditambahkan')
+      setTimeout(() => setToastMessage(null), 3000)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal membuat habit'
+      if (msg.toLowerCase().includes('unauthorized')) {
+        router.push('/login')
+      } else {
+        // keep form open and log
+        console.error('Create habit failed:', err)
+      }
+      throw err
+    }
   }
 
   const handleUpdateHabit = async (data: HabitInput) => {
     if (editingHabitId) {
-      await updateHabit(editingHabitId, data)
+      try {
+        await updateHabit(editingHabitId, data)
+      } catch (err) {
+        if (err instanceof Error && err.message.toLowerCase().includes('unauthorized')) {
+          router.push('/login')
+        }
+        throw err
+      }
       setShowHabitForm(false)
       setEditingHabit(null)
       setEditingHabitId(null)
@@ -81,8 +103,15 @@ export default function DashboardPage() {
 
   const handleDeleteHabit = async () => {
     if (deleteConfirm) {
-      await deleteHabit(deleteConfirm)
-      setDeleteConfirm(null)
+      try {
+        await deleteHabit(deleteConfirm)
+        setDeleteConfirm(null)
+      } catch (err) {
+        if (err instanceof Error && err.message.toLowerCase().includes('unauthorized')) {
+          router.push('/login')
+        }
+        throw err
+      }
     }
   }
 
@@ -130,10 +159,10 @@ export default function DashboardPage() {
 
   if (!user) return null
 
-  const completedCount = dashboard?.summary.completed || 0
-  const totalCount = dashboard?.summary.total || 0
-  const progress = dashboard?.summary.progress || 0
   const todayHabits = (habits && habits.length > 0) ? habits : (dashboard?.habits || [])
+  const completedCount = todayHabits.filter(h => h.todayLog?.status === 'COMPLETED').length
+  const totalCount = todayHabits.length
+  const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
   const dueToday = todayHabits.filter(h => h.isDueToday)
   const completedToday = dueToday.filter(h => h.todayLog?.status === 'COMPLETED').length
 
@@ -415,6 +444,22 @@ export default function DashboardPage() {
             )}
           </motion.div>
         )}
+
+            {/* Toast */}
+            <AnimatePresence>
+              {toastMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="fixed right-6 bottom-6 z-50"
+                >
+                  <div className="px-4 py-3 rounded-lg bg-emerald-600 text-white shadow-lg">
+                    {toastMessage}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
         {/* Analytics Tab */}
         {activeTab === 'analytics' && (
