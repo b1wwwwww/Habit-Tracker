@@ -5,10 +5,20 @@ export type { Habit, HabitLog, User }
 export interface HabitWithLogs extends Habit {
   logs: HabitLog[]
   todayLog?: HabitLog | null
+  isDueToday?: boolean
+  currentStreak?: number
+  bestStreak?: number
+}
+
+export type HabitWithStatus = Habit & {
+  todayLog?: HabitLog | null
+  isDueToday?: boolean
+  currentStreak?: number
+  bestStreak?: number
 }
 
 export interface DashboardData {
-  habits: (Habit & { todayLog?: HabitLog | null })[]
+  habits: HabitWithStatus[]
   summary: {
     completed: number
     total: number

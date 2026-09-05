@@ -17,7 +17,7 @@ import { useDashboard } from '@/hooks/useDashboard'
 import { useStreaks } from '@/hooks/useAnalytics'
 import { useHeatmap } from '@/hooks/useAnalytics'
 import { format } from 'date-fns'
-import id from 'date-fns/locale/id'
+import { id } from 'date-fns/locale/id'
 import { cn } from '@/utils/helpers'
 
 export default function DashboardPage() {

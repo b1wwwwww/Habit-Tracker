@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Habit, HabitLog } from '@/types'
+import { Habit, HabitLog, HabitWithStatus } from '@/types'
 import { useApi } from './useApi'
 
 interface UseHabitsReturn {
-  habits: (Habit & { todayLog?: HabitLog | null })[]
+  habits: HabitWithStatus[]
   loading: boolean
   error: string | null
   fetchHabits: () => Promise<void>
@@ -28,9 +28,9 @@ export interface HabitInput {
 }
 
 export function useHabits(): UseHabitsReturn {
-  const [habits, setHabits] = useState<(Habit & { todayLog?: HabitLog | null })[]>([])
+  const [habits, setHabits] = useState<HabitWithStatus[]>([])
 
-  const { execute: fetchExecute, loading: fetchLoading, error: fetchError } = useApi<{ habits: (Habit & { todayLog?: HabitLog | null })[] }>({
+  const { execute: fetchExecute, loading: fetchLoading, error: fetchError } = useApi<{ habits: HabitWithStatus[] }>({
     onSuccess: (data) => {
       setHabits(data.habits)
     },
@@ -123,10 +123,15 @@ export function useHabits(): UseHabitsReturn {
           return {
             ...h,
             todayLog: {
-              ...(h.todayLog || {}),
+              id: h.todayLog?.id ?? `temp-${habitId}`,
+              createdAt: h.todayLog?.createdAt ?? new Date(),
+              updatedAt: new Date(),
+              habitId,
+              userId: h.userId,
+              completedDate: h.todayLog?.completedDate ?? new Date(),
               currentValue,
-              status: isCompleted ? 'COMPLETED' : 'PARTIAL',
-            },
+              status: (isCompleted ? 'COMPLETED' : 'PARTIAL') as HabitLog['status'],
+            } as HabitLog,
           }
         })
       )
