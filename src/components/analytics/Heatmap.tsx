@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, Calendar, Flame, Trophy, Target, Activity } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, Flame, Trophy, Target, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { format, startOfYear, endOfYear, startOfWeek, endOfWeek, eachDayOfInterval, getDay, isSameDay, isSameMonth } from 'date-fns'
+import { format, startOfYear, endOfYear, startOfWeek, endOfWeek, eachDayOfInterval, getDay, isSameDay } from 'date-fns'
+import { id as localeId } from 'date-fns/locale/id'
 import { cn } from '@/utils/helpers'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -16,310 +17,239 @@ interface HeatmapProps {
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-const DAYS_SHORT = ['M', 'S', 'S', 'R', 'K', 'J', 'S']
-const DAYS_FULL = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+const DAYS_SHORT = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 
 const LEVELS = [
-  { min: 0, max: 0, color: 'bg-gray-200 dark:bg-gray-800', label: 'Tidak ada' },
-  { min: 1, max: 2, color: 'bg-emerald-200 dark:bg-emerald-800', label: '1-2' },
-  { min: 3, max: 4, color: 'bg-emerald-300 dark:bg-emerald-700', label: '3-4' },
-  { min: 5, max: 6, color: 'bg-emerald-400 dark:bg-emerald-600', label: '5-6' },
-  { min: 7, max: 8, color: 'bg-emerald-500 dark:bg-emerald-500', label: '7-8' },
-  { min: 9, max: Infinity, color: 'bg-emerald-600 dark:bg-emerald-400', label: '9+' },
+  { min: 0, max: 0, color: 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700/60', label: '0' },
+  { min: 1, max: 1, color: 'bg-emerald-200 dark:bg-emerald-900/70 border-emerald-300 dark:border-emerald-800', label: '1' },
+  { min: 2, max: 3, color: 'bg-emerald-300 dark:bg-emerald-800 border-emerald-400 dark:border-emerald-700', label: '2-3' },
+  { min: 4, max: 6, color: 'bg-emerald-400 dark:bg-emerald-600 border-emerald-500 dark:border-emerald-500', label: '4-6' },
+  { min: 7, max: 8, color: 'bg-emerald-500 dark:bg-emerald-500 border-emerald-600 dark:border-emerald-400', label: '7-8' },
+  { min: 9, max: Infinity, color: 'bg-gradient-to-br from-emerald-600 to-teal-600 dark:from-emerald-500 dark:to-teal-500 border-emerald-700', label: '9+' },
 ]
 
 export function Heatmap({ data, year, onYearChange, streaks = [] }: HeatmapProps) {
   const [currentYear, setCurrentYear] = useState(year)
-  const [hoveredCell, setHoveredCell] = useState<{ date: Date; count: number } | null>(null)
+  const [hovered, setHovered] = useState<{ date: Date; count: number } | null>(null)
+  const [selected, setSelected] = useState<{ date: Date; count: number } | null>(null)
 
-  useEffect(() => {
-    setCurrentYear(year)
-  }, [year])
+  useEffect(() => setCurrentYear(year), [year])
 
   const weeks = useMemo(() => {
-    const yearStart = startOfYear(new Date(currentYear, 0, 1))
-    const yearEnd = endOfYear(new Date(currentYear, 11, 31))
-    const weekStart = startOfWeek(yearStart, { weekStartsOn: 0 })
-    const weekEnd = endOfWeek(yearEnd, { weekStartsOn: 0 })
-    const allDays = eachDayOfInterval({ start: weekStart, end: weekEnd })
-
-    const weeks: Date[][] = []
-    let currentWeek: Date[] = []
-
-    allDays.forEach((day) => {
-      currentWeek.push(day)
-      if (getDay(day) === 6) {
-        weeks.push(currentWeek)
-        currentWeek = []
-      }
+    const yStart = startOfYear(new Date(currentYear, 0, 1))
+    const yEnd = endOfYear(new Date(currentYear, 11, 31))
+    const wStart = startOfWeek(yStart, { weekStartsOn: 0 })
+    const wEnd = endOfWeek(yEnd, { weekStartsOn: 0 })
+    const allDays = eachDayOfInterval({ start: wStart, end: wEnd })
+    const w: Date[][] = []
+    let cur: Date[] = []
+    allDays.forEach((d) => {
+      cur.push(d)
+      if (getDay(d) === 6) { w.push(cur); cur = [] }
     })
-    if (currentWeek.length > 0) weeks.push(currentWeek)
-    return weeks
+    if (cur.length) w.push(cur)
+    return w
   }, [currentYear])
 
-  const getCount = (date: Date): number => {
-    const key = format(date, 'yyyy-MM-dd')
-    return data[key] || 0
-  }
+  const getCount = (d: Date) => data[format(d, 'yyyy-MM-dd')] || 0
+  const getLevel = (c: number) => LEVELS.find(l => c >= l.min && c <= l.max) || LEVELS[0]
+  const isFuture = (d: Date) => d > new Date() && !isSameDay(d, new Date())
+  const total = Object.values(data).reduce((a, b) => a + b, 0)
+  const activeDays = Object.values(data).filter(v => v > 0).length
+  const longestStreak = streaks.reduce((m, s) => Math.max(m, s.bestStreak), 0)
+  const currentStreak = streaks.reduce((m, s) => Math.max(m, s.currentStreak), 0)
 
-  const getLevel = (count: number) => {
-    return LEVELS.find(l => count >= l.min && count <= l.max) || LEVELS[0]
-  }
-
-  const getColorClass = (count: number): string => {
-    return getLevel(count).color
-  }
-
-  const isFuture = (date: Date) => date > new Date()
-
-  const handleYearChange = (newYear: number) => {
-    setCurrentYear(newYear)
-    onYearChange(newYear)
-  }
-
-  const totalContributions = Object.values(data).reduce((sum, val) => sum + val, 0)
-  const activeDays = Object.values(data).filter(val => val > 0).length
-  const longestStreak = streaks.reduce((max, s) => Math.max(max, s.bestStreak), 0)
-  const currentStreak = streaks.reduce((max, s) => Math.max(max, s.currentStreak), 0)
+  const handleYear = (y: number) => { setCurrentYear(y); onYearChange(y); setSelected(null) }
 
   return (
     <div className="space-y-6">
-      {/* Main Heatmap Card */}
-      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+        <Card className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-gray-200/70 dark:border-gray-800/70 overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+                <Calendar className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <CardTitle className="text-base sm:text-lg font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+                  Kalender Tahunan {currentYear}
+                  <Sparkles className="w-4 h-4 text-amber-500 hidden sm:block" />
+                </CardTitle>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
+                  {total} kontribusi • {activeDays} hari aktif • Tap tanggal untuk detail
+                </p>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Konsistensi {currentYear}</CardTitle>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {totalContributions} total • {activeDays} hari aktif • {weeks.length} minggu
-              </p>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Button variant="ghost" size="sm" onClick={() => handleYear(currentYear - 1)} className="w-8 h-8 p-0 rounded-xl">
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="font-mono text-sm font-bold w-16 text-center px-2 py-1.5 bg-gray-900 text-white dark:bg-white dark:text-gray-900 rounded-xl">
+                {currentYear}
+              </span>
+              <Button variant="ghost" size="sm" onClick={() => handleYear(currentYear + 1)} disabled={currentYear >= new Date().getFullYear()} className="w-8 h-8 p-0 rounded-xl">
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleYearChange(currentYear - 1)}
-              aria-label="Tahun sebelumnya"
-              className="w-8 h-8 p-0"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="font-mono text-sm font-medium w-16 text-center px-2 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              {currentYear}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleYearChange(currentYear + 1)}
-              disabled={currentYear >= new Date().getFullYear()}
-              aria-label="Tahun berikutnya"
-              className="w-8 h-8 p-0"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6 pb-4">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse" role="img" aria-label={`Heatmap aktivitas tahun ${currentYear}`}>
-              <thead>
-                <tr>
-                  <th className="text-right pr-3 font-medium text-gray-500 dark:text-gray-400">Minggu</th>
-                  {DAYS_SHORT.map((day, i) => (
-                    <th key={i} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-2 px-1">
-                      {day}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {weeks.map((week, weekIndex) => (
-                  <tr key={weekIndex}>
-                    <td className="text-right pr-3 text-xs text-gray-500 dark:text-gray-400 align-top py-1">
-                      {isSameMonth(week[0], week[6]) ? MONTHS[week[0].getMonth()] : ''}
-                    </td>
-                    {week.map((day, dayIndex) => {
-                      const count = getCount(day)
-                      const level = getLevel(count)
-                      const isCurrentMonth = day.getMonth() === week[0].getMonth() || weekIndex === 0
-                      const isToday = isSameDay(day, new Date())
-                      const isFutureDay = isFuture(day)
-                      
-                      return (
-                        <td key={dayIndex} className="text-center align-top py-1 px-1">
-                          {isCurrentMonth ? (
-                            <motion.button
-                              className={cn(
-                                'w-9 h-9 mx-auto rounded transition-all duration-200 relative group',
-                                getColorClass(count),
-                                isFutureDay && 'opacity-40 cursor-not-allowed',
-                                isToday && 'ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900 scale-110',
-                                'hover:scale-125 hover:z-10 active:scale-95',
-                                'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
-                              )}
-                              title={`${DAYS_FULL[day.getDay()]}, ${format(day, 'dd MMM yyyy')}: ${count} habit${count !== 1 ? 's' : ''} selesai`}
-                              onMouseEnter={() => setHoveredCell({ date: day, count })}
-                              onMouseLeave={() => setHoveredCell(null)}
-                              onFocus={() => setHoveredCell({ date: day, count })}
-                              onBlur={() => setHoveredCell(null)}
-                              disabled={isFutureDay}
-                              aria-label={`${DAYS_FULL[day.getDay()]}, ${format(day, 'dd MMMM yyyy')}: ${count} habit selesai`}
-                            >
-                              {level.min > 0 && (
-                                <motion.span
-                                  className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs bg-gray-900 text-white px-2 py-1 rounded shadow-lg"
-                                  initial={{ opacity: 0, y: 4 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  exit={{ opacity: 0, y: -4 }}
-                                >
-                                  {count} habit
-                                </motion.span>
-                              )}
-                            </motion.button>
-                          ) : (
-                            <div className="w-9 h-9 mx-auto" />
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Legend */}
-          <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-800">
-            <span className="text-sm text-gray-500 dark:text-gray-400">Kurang</span>
-            <div className="flex gap-1" role="img" aria-label="Legenda tingkat aktivitas">
-              {LEVELS.map((level, i) => (
-                <motion.div
-                  key={i}
-                  className={cn('w-9 h-9 rounded', level.color)}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.05 * i, type: 'spring', stiffness: 300 }}
-                  title={`${level.label} habit/hari`}
-                />
-              ))}
-            </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">Lebih</span>
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
 
-      {/* Hover Tooltip */}
-      <AnimatePresence>
-        {hoveredCell && !isFuture(hoveredCell.date) && (
-          <motion.div
-            className="fixed bottom-8 right-8 z-50"
-            initial={{ opacity: 0, x: 20, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 20, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          >
-            <Card className="w-64 shadow-xl border-emerald-200 dark:border-emerald-800 bg-white dark:bg-gray-900">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', getColorClass(hoveredCell.count))}>
-                    {hoveredCell.count > 0 ? (
-                      <span className="text-xl font-bold text-white">✓</span>
-                    ) : (
-                      <span className="text-xl text-gray-400">○</span>
-                    )}
+          <CardContent className="p-4 sm:p-6">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-thin">
+              <div className="min-w-[720px]">
+                <div className="grid gap-1 ml-8 sm:ml-10 mb-2" style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}>
+                  {weeks.map((week, i) => {
+                    const monthStart = week.find(d => d.getDate() >= 1 && d.getDate() <= 7)
+                    const show = monthStart && monthStart.getFullYear() === currentYear
+                    return (
+                      <span key={i} className="text-[10px] sm:text-xs font-medium text-gray-400 dark:text-gray-500">
+                        {show ? MONTHS[monthStart!.getMonth()] : ''}
+                      </span>
+                    )
+                  })}
+                </div>
+
+                <div className="flex gap-1">
+                  <div className="flex flex-col gap-1 mr-1 sm:mr-2 justify-between py-0.5 shrink-0">
+                    {DAYS_SHORT.map((d, i) => (
+                      <span key={i} className={cn('text-[10px] h-[14px] sm:h-[16px] flex items-center font-medium', i % 2 === 1 ? 'text-gray-400 dark:text-gray-500' : 'text-transparent')}>
+                        {d.slice(0, 2)}
+                      </span>
+                    ))}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900 dark:text-white">
-                      {format(hoveredCell.date, 'dd MMMM yyyy')}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {DAYS_FULL[hoveredCell.date.getDay()]} • {hoveredCell.count} habit{hoveredCell.count !== 1 ? 's' : ''} selesai
-                    </p>
+
+                  <div className="flex gap-1 flex-1">
+                    {weeks.map((week, wi) => (
+                      <motion.div key={wi} className="flex flex-col gap-1 flex-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: wi * 0.008 }}>
+                        {week.map((day) => {
+                          const count = getCount(day)
+                          const level = getLevel(count)
+                          const isToday = isSameDay(day, new Date())
+                          const future = isFuture(day)
+                          const inYear = day.getFullYear() === currentYear
+                          const isSelected = selected && isSameDay(selected.date, day)
+                          const isHovered = hovered && isSameDay(hovered.date, day)
+
+                          if (!inYear && (day < startOfYear(new Date(currentYear, 0, 1)) || day > endOfYear(new Date(currentYear, 11, 31)))) {
+                            return <div key={day.toISOString()} className="w-full aspect-square max-w-[16px]" />
+                          }
+
+                          return (
+                            <div key={day.toISOString()} className="relative flex-1 flex">
+                              <motion.button
+                                onMouseEnter={() => setHovered({ date: day, count })}
+                                onMouseLeave={() => setHovered(null)}
+                                onFocus={() => setHovered({ date: day, count })}
+                                onBlur={() => setHovered(null)}
+                                onClick={() => !future && setSelected({ date: day, count })}
+                                disabled={future}
+                                aria-label={`${format(day, 'EEEE, dd MMMM yyyy', { locale: localeId })}: ${count} selesai`}
+                                className={cn(
+                                  'w-full aspect-square rounded-[4px] border transition-all duration-200 relative group max-w-[16px] mx-auto',
+                                  level.color,
+                                  future && 'opacity-30 cursor-not-allowed',
+                                  isToday && 'ring-2 ring-violet-500 ring-offset-1 dark:ring-offset-gray-900 z-10 scale-110',
+                                  isSelected && 'ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-gray-900 z-10 scale-110',
+                                  !future && 'hover:scale-[1.35] hover:z-20 hover:shadow-md active:scale-95 cursor-pointer',
+                                  'focus:outline-none focus:ring-2 focus:ring-violet-500'
+                                )}
+                                whileHover={!future ? { scale: 1.2 } : {}}
+                                whileTap={!future ? { scale: 0.9 } : {}}
+                              >
+                                {count >= 7 && !future && <span className="absolute inset-0 flex items-center justify-center text-[7px]">🔥</span>}
+                              </motion.button>
+
+                              <AnimatePresence>
+                                {isHovered && !future && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30 pointer-events-none"
+                                  >
+                                    <div className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs rounded-xl px-3 py-2 shadow-xl whitespace-nowrap border border-white/10">
+                                      <p className="font-semibold">{format(day, 'EEEE, dd MMM yyyy', { locale: localeId })}</p>
+                                      <p className="opacity-80">{count === 0 ? 'Belum ada aktivitas' : `${count} habit selesai`}{isToday ? ' • Hari ini' : ''}</p>
+                                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 dark:bg-white rotate-45 -mt-1" />
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          )
+                        })}
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </div>
+            </div>
 
-      {/* Summary Stats */}
-      {(streaks.length > 0 || totalContributions > 0) && (
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <StatCard
-            icon={<Flame className="w-5 h-5" />}
-            iconColor="text-orange-500"
-            bgColor="bg-orange-100 dark:bg-orange-900/30"
-            title="Streak Saat Ini"
-            value={currentStreak}
-            suffix="hari"
-            trend={currentStreak > 0 ? 'Sedang berjalan 🔥' : 'Mulai hari ini'}
-            trendColor={currentStreak > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400'}
-          />
-          <StatCard
-            icon={<Trophy className="w-5 h-5" />}
-            iconColor="text-yellow-500"
-            bgColor="bg-yellow-100 dark:bg-yellow-900/30"
-            title="Rekor Terbaik"
-            value={longestStreak}
-            suffix="hari"
-            trend="Tertinggi sepanjang masa"
-            trendColor="text-yellow-600 dark:text-yellow-400"
-          />
-          <StatCard
-            icon={<Target className="w-5 h-5" />}
-            iconColor="text-blue-500"
-            bgColor="bg-blue-100 dark:bg-blue-900/30"
-            title="Total Kontribusi"
-            value={totalContributions}
-            suffix="x"
-            trend={`${activeDays} hari aktif dari ${weeks.length * 7} hari`}
-            trendColor="text-blue-600 dark:text-blue-400"
-          />
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <span>Kurang</span>
+                <div className="flex gap-1.5">
+                  {LEVELS.map((level, i) => (
+                    <motion.div key={i} className={cn('w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-[4px] border', level.color)} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.05 * i, type: 'spring' }} title={level.label} />
+                  ))}
+                </div>
+                <span>Lebih</span>
+              </div>
+              <p className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">Klik tanggal untuk lihat streak & detail</p>
+            </div>
+
+            <AnimatePresence>
+              {selected && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-violet-500/10 via-blue-500/10 to-emerald-500/10 border border-violet-200/50 dark:border-violet-800/30 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center border shadow-sm shrink-0', getLevel(selected.count).color)}>
+                      {selected.count > 0 ? <span className="text-lg">✓</span> : <span className="text-gray-400">○</span>}
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-white">{format(selected.date, 'EEEE, dd MMMM yyyy', { locale: localeId })}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {selected.count === 0 ? 'Tidak ada habit selesai' : `${selected.count} habit selesai`} {isSameDay(selected.date, new Date()) && '• Hari ini'}
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setSelected(null)} className="rounded-xl">Tutup</Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {(streaks.length > 0 || total > 0) && (
+        <motion.div className="grid grid-cols-1 sm:grid-cols-3 gap-4" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <StatCard icon={<Flame className="w-5 h-5" />} gradient="from-orange-500 to-red-500" title="Streak Aktif" value={currentStreak} suffix="hari" trend={currentStreak > 0 ? 'Menyala! 🔥' : 'Mulai streak hari ini'} />
+          <StatCard icon={<Trophy className="w-5 h-5" />} gradient="from-amber-500 to-yellow-500" title="Rekor Terbaik" value={longestStreak} suffix="hari" trend="Rekor sepanjang masa" />
+          <StatCard icon={<Target className="w-5 h-5" />} gradient="from-blue-500 to-violet-600" title="Total Kontribusi" value={total} suffix="x" trend={`${activeDays} hari aktif`} />
         </motion.div>
       )}
     </div>
   )
 }
 
-interface StatCardProps {
-  icon: React.ReactNode
-  iconColor: string
-  bgColor: string
-  title: string
-  value: number
-  suffix: string
-  trend: string
-  trendColor: string
-}
-
-function StatCard({ icon, iconColor, bgColor, title, value, suffix, trend, trendColor }: StatCardProps) {
+function StatCard({ icon, gradient, title, value, suffix, trend }: { icon: React.ReactNode; gradient: string; title: string; value: number; suffix: string; trend: string }) {
   return (
-    <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-md transition-shadow duration-200">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{title}</p>
-            <div className="flex items-baseline gap-1 mb-1">
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">{value}</span>
-              <span className="text-gray-500 dark:text-gray-400">{suffix}</span>
+    <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400 }}>
+      <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-gray-200/60 dark:border-gray-800/60 hover:shadow-lg transition-all">
+        <CardContent className="p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1">{title}</p>
+              <div className="flex items-baseline gap-1.5 mb-1">
+                <motion.span className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white" initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}>{value}</motion.span>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{suffix}</span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{trend}</p>
             </div>
-            <p className={cn('text-xs', trendColor)}>{trend}</p>
+            <div className={cn('w-12 h-12 rounded-2xl bg-gradient-to-br flex items-center justify-center text-white shadow-lg shrink-0', gradient)}>
+              {icon}
+            </div>
           </div>
-          <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center', bgColor, iconColor)}>
-            {icon}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }
