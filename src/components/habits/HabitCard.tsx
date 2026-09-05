@@ -72,7 +72,6 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
     if (isCompleted) return
     
     if (targetType === 'NUMERIC') {
-      // For numeric habits, tap completes with target value
       await onCheckIn(habit.id, targetValue)
     } else {
       await onCheckIn(habit.id, 1)
@@ -87,48 +86,56 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
     }
   }
 
-  const handleLongPress = () => {
-    if (targetType === 'NUMERIC' && !isCompleted) {
-      setInputValue(targetValue)
-      setShowNumericInput(true)
-    }
-  }
-
   return (
     <motion.div
       ref={cardRef}
       className={cn(
-        'relative p-4 rounded-2xl border transition-all duration-300',
-        'bg-white dark:bg-gray-800',
-        'border-gray-200 dark:border-gray-700',
-        'hover:border-gray-300 dark:hover:border-gray-600',
-        'hover:shadow-md dark:hover:shadow-lg',
-        isCompleted && 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+        'relative p-5 rounded-3xl transition-all duration-300 backdrop-blur-xl',
+        'bg-white/80 dark:bg-gray-900/80 shadow-sm hover:shadow-xl',
+        'border border-gray-100/80 dark:border-gray-800/80',
+        isCompleted 
+          ? 'bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-transparent border-emerald-500/30 dark:border-emerald-500/30' 
+          : 'hover:border-primary/40 dark:hover:border-primary/40'
       )}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2 }}
       transition={{ duration: 0.3 }}
-      onContextMenu={(e) => { e.preventDefault(); setShowMenu(true) }}
     >
-      {/* Category badge & streak */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl leading-none">{categoryIcon}</span>
-          <span className={cn('text-xs font-medium px-2.5 py-1 rounded-full', categoryColor)}>
-            {category}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {(currentStreak && currentStreak > 0) && (
-            <span className="flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 px-2 py-1 rounded-full">
-              <Zap className="w-3 h-3" />
-              {currentStreak}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <motion.div 
+            className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner', categoryColor)}
+            whileHover={{ scale: 1.05, rotate: 5 }}
+          >
+            {categoryIcon}
+          </motion.div>
+          <div>
+            <span className={cn('text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider', categoryColor)}>
+              {category}
             </span>
+            <span className="block text-xs text-gray-400 dark:text-gray-500 mt-1">
+              {frequencyLabel}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {(currentStreak && currentStreak > 0) && (
+            <motion.div 
+              className="flex items-center gap-1.5 text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-100/80 dark:bg-orange-900/40 px-3 py-1.5 rounded-2xl shadow-sm border border-orange-200/50 dark:border-orange-800/50"
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+            >
+              <Zap className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
+              <span>{currentStreak} hari</span>
+            </motion.div>
           )}
+
           <div className="relative" ref={menuRef}>
             <button
               onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu) }}
-              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               aria-label="Opsi habit"
             >
               <MoreHorizontal className="w-5 h-5" />
@@ -136,7 +143,7 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
             <AnimatePresence>
               {showMenu && (
                 <motion.div
-                  className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20"
+                  className="absolute right-0 top-full mt-2 w-44 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 py-2 z-30"
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -144,15 +151,15 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
                 >
                   <button
                     onClick={() => { onEdit(habit); setShowMenu(false) }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                    className="w-full px-4 py-2.5 text-left text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2.5 transition-colors"
                   >
-                    <Edit className="w-4 h-4" /> Edit
+                    <Edit className="w-4 h-4 text-primary" /> Edit Habit
                   </button>
                   <button
                     onClick={() => { onDelete(habit.id); setShowMenu(false) }}
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                    className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-2.5 transition-colors"
                   >
-                    <Trash2 className="w-4 h-4" /> Hapus
+                    <Trash2 className="w-4 h-4" /> Hapus Habit
                   </button>
                 </motion.div>
               )}
@@ -161,39 +168,24 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
         </div>
       </div>
 
-      {/* Title */}
       <h3 className={cn(
-        'font-semibold text-gray-900 dark:text-white mb-2 truncate',
+        'text-lg font-bold text-gray-900 dark:text-white mb-3 tracking-tight',
         isCompleted && 'line-through text-gray-400 dark:text-gray-500'
       )}>
         {title}
       </h3>
 
-      {/* Frequency & Progress */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
-          {frequencyLabel}
-        </span>
-        {targetType === 'NUMERIC' && (
-          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-            Target: {targetValue}
-          </span>
-        )}
-      </div>
-
-      {/* Progress bar for numeric */}
       {targetType === 'NUMERIC' && (
-        <div className="mb-3">
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-            <span>{isCompleted ? targetValue : currentValue} / {targetValue}</span>
-            <span>{isCompleted ? 100 : Math.round(progress)}%</span>
+        <div className="mb-4 bg-gray-50/80 dark:bg-gray-800/50 p-3 rounded-2xl border border-gray-100 dark:border-gray-800">
+          <div className="flex justify-between text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+            <span>Progress: <strong className="text-gray-900 dark:text-white">{isCompleted ? targetValue : currentValue}</strong> / {targetValue}</span>
+            <span className="text-primary font-bold">{isCompleted ? 100 : Math.round(progress)}%</span>
           </div>
-          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden p-0.5">
             <motion.div
               className={cn(
-                'h-full rounded-full transition-all duration-500 ease-out',
-                isCompleted ? 'bg-emerald-500' : 'bg-primary'
+                'h-full rounded-full transition-all duration-500 bg-gradient-to-r',
+                isCompleted ? 'from-emerald-400 to-teal-500' : 'from-blue-500 to-purple-600'
               )}
               initial={{ width: 0 }}
               animate={{ width: `${isCompleted ? 100 : progress}%` }}
@@ -202,51 +194,56 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
         </div>
       )}
 
-      {/* Action Button - Main interaction */}
-      <div className="flex items-center justify-end gap-2 pt-2">
-        {isCompleted ? (
-          <motion.button
-            onClick={handleCustomInput}
-            onContextMenu={handleLongPress}
-            className={cn(
-              'w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200',
-              'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
-              'hover:scale-105 active:scale-95'
-            )}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Ubah nilai"
-          >
-            <Check className="w-6 h-6" />
-          </motion.button>
-        ) : (
-          <>
-            {targetType === 'NUMERIC' && (
-              <motion.button
-                onClick={handleCustomInput}
-                onContextMenu={handleLongPress}
-                className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex items-center justify-center transition-all hover:bg-gray-200 dark:hover:bg-gray-600"
-                whileTap={{ scale: 0.95 }}
-                aria-label="Input nilai kustom"
-              >
-                <Target className="w-5 h-5" />
-              </motion.button>
-            )}
+      <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800/80">
+        <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>{isCompleted ? 'Selesai hari ini!' : 'Belum selesai'}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isCompleted ? (
             <motion.button
-              onClick={handleComplete}
+              onClick={() => {
+                if (targetType === 'NUMERIC') setShowNumericInput(true)
+                else onUndo(habit.id)
+              }}
               className={cn(
-                'w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200',
-                'bg-primary text-white',
-                'hover:opacity-90 active:scale-95',
-                'shadow-lg shadow-primary/25'
+                'px-4 py-2.5 rounded-2xl flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-sm',
+                'bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/20'
               )}
-              whileTap={{ scale: 0.92 }}
-              aria-label={targetType === 'BOOLEAN' ? 'Tandai selesai' : `Selesai (${targetValue})`}
-              disabled={isCompleted}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Circle className="w-6 h-6 stroke-2" />
+              <Check className="w-4 h-4 stroke-[3]" />
+              <span>Selesai</span>
             </motion.button>
-          </>
-        )}
+          ) : (
+            <>
+              {targetType === 'NUMERIC' && (
+                <motion.button
+                  onClick={() => setShowNumericInput(true)}
+                  className="px-4 py-2.5 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium text-sm flex items-center gap-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Target className="w-4 h-4 text-primary" />
+                  <span>Input</span>
+                </motion.button>
+              )}
+              <motion.button
+                onClick={handleComplete}
+                className={cn(
+                  'px-5 py-2.5 rounded-2xl flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-lg',
+                  'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 shadow-primary/25'
+                )}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Circle className="w-4 h-4 stroke-[3]" />
+                <span>Check-in</span>
+              </motion.button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Numeric Input Modal */}
