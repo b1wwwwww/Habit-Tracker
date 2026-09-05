@@ -93,7 +93,7 @@ export async function DELETE(
     })
 
     if (!log) {
-      return NextResponse.json({ error: 'Log tidak ditemukan' }, { status: 404 })
+      return NextResponse.json({ message: 'Log sudah tidak ada' }, { status: 200 })
     }
 
     await prisma.habitLog.delete({ where: { id: log.id } })

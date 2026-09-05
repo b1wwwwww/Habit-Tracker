@@ -164,16 +164,23 @@ export function useHabits(): UseHabitsReturn {
 
   const undoCheckIn = useCallback(
     async (habitId: string) => {
-      await undoExecute(async () => {
-        const res = await fetch(`/api/habits/${habitId}/check-in`, { method: 'DELETE' })
-        if (!res.ok) {
-          const err = await res.json()
-          throw new Error(err.error || 'Gagal membatalkan check-in')
-        }
-        return res.json()
-      })
+      const prevSnapshot = [...habits]
+      setHabits((s) => s.map((h) => (h.id === habitId ? { ...h, todayLog: null } : h)))
+      try {
+        await undoExecute(async () => {
+          const res = await fetch(`/api/habits/${habitId}/check-in`, { method: 'DELETE' })
+          if (!res.ok) {
+            const err = await res.json()
+            throw new Error(err.error || 'Gagal membatalkan check-in')
+          }
+          return res.json()
+        })
+      } catch (err) {
+        setHabits(prevSnapshot)
+        throw err
+      }
     },
-    [undoExecute]
+    [undoExecute, habits]
   )
 
   const loading = fetchLoading || createLoading || updateLoading || deleteLoading || checkInLoading || undoLoading

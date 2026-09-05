@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Check, Circle, MoreHorizontal, Trash2, Edit, Target, Zap, Loader2 } from 'lucide-react'
+import { Check, Circle, MoreHorizontal, Trash2, Edit, Target, Zap, Loader2, HeartPulse, ClipboardList, Wallet, Dumbbell, GraduationCap, Palette, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Habit, HabitLog } from '@/types'
 import { Button } from '@/components/ui/Button'
@@ -17,23 +17,33 @@ interface HabitCardProps {
 }
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  Kesehatan: <span className="text-2xl">🏥</span>,
-  Produktivitas: <span className="text-2xl">📋</span>,
-  Keuangan: <span className="text-2xl">💰</span>,
-  Kebugaran: <span className="text-2xl">💪</span>,
-  Pendidikan: <span className="text-2xl">📚</span>,
-  Hobi: <span className="text-2xl">🎨</span>,
-  Lainnya: <span className="text-2xl">✨</span>,
+  Kesehatan: <HeartPulse className="w-6 h-6" />,
+  Produktivitas: <ClipboardList className="w-6 h-6" />,
+  Keuangan: <Wallet className="w-6 h-6" />,
+  Kebugaran: <Dumbbell className="w-6 h-6" />,
+  Pendidikan: <GraduationCap className="w-6 h-6" />,
+  Hobi: <Palette className="w-6 h-6" />,
+  Lainnya: <Sparkles className="w-6 h-6" />,
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Kesehatan: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
-  Produktivitas: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-  Keuangan: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
-  Kebugaran: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
-  Pendidikan: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
-  Hobi: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400',
-  Lainnya: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
+const CATEGORY_STYLES: Record<string, string> = {
+  Kesehatan: 'bg-gradient-to-br from-red-500 to-pink-500 text-white shadow-red-500/20',
+  Produktivitas: 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-500/20',
+  Keuangan: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-emerald-500/20',
+  Kebugaran: 'bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-orange-500/20',
+  Pendidikan: 'bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-violet-500/20',
+  Hobi: 'bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-pink-500/20',
+  Lainnya: 'bg-gradient-to-br from-slate-600 to-slate-700 text-white shadow-slate-500/20',
+}
+
+const CATEGORY_BADGE: Record<string, string> = {
+  Kesehatan: 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50',
+  Produktivitas: 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/50',
+  Keuangan: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50',
+  Kebugaran: 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-900/50',
+  Pendidikan: 'bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-900/50',
+  Hobi: 'bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 border-pink-200 dark:border-pink-900/50',
+  Lainnya: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700',
 }
 
 export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitCardProps) {
@@ -66,7 +76,8 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
       : `Hari: ${frequencyDays.join(', ')}`
 
   const categoryIcon = CATEGORY_ICONS[category] || CATEGORY_ICONS.Lainnya
-  const categoryColor = CATEGORY_COLORS[category] || CATEGORY_COLORS.Lainnya
+  const categoryStyle = CATEGORY_STYLES[category] || CATEGORY_STYLES.Lainnya
+  const categoryBadge = CATEGORY_BADGE[category] || CATEGORY_BADGE.Lainnya
 
   const handleComplete = async () => {
     if (isCompleted) return
@@ -105,13 +116,13 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <motion.div 
-            className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner', categoryColor)}
+            className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg', categoryStyle)}
             whileHover={{ scale: 1.05, rotate: 5 }}
           >
             {categoryIcon}
           </motion.div>
           <div>
-            <span className={cn('text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider', categoryColor)}>
+            <span className={cn('text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border', categoryBadge)}>
               {category}
             </span>
             <span className="block text-xs text-gray-400 dark:text-gray-500 mt-1">
