@@ -324,77 +324,51 @@ export default function DashboardPage() {
               </Button>
             </div>
 
-            {/* Progress Ring */}
-            <div className="mb-8">
-              <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="relative w-36 h-36">
-                        <svg className="w-full h-full transform -rotate-90">
-                          <circle
-                            cx="72"
-                            cy="72"
-                            r="66"
-                            fill="none"
-                            stroke="#e5e7eb"
-                            strokeWidth="8"
-                            className="dark:stroke-gray-700"
-                          />
-                          <motion.circle
-                            cx="72"
-                            cy="72"
-                            r="66"
-                            fill="none"
-                            stroke="url(#progressGradient)"
-                            strokeWidth="8"
-                            strokeDasharray={`${progress * 4.15} 415`}
-                            strokeDashoffset="0"
-                            strokeLinecap="round"
-                            className="transition-all duration-700 ease-out"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: progress / 100 }}
-                          />
-                          <defs>
-                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#3b82f6" />
-                              <stop offset="100%" stopColor="#8b5cf6" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <motion.span
-                              className="text-4xl font-bold text-gray-900 dark:text-white"
-                              initial={{ scale: 0.5 }}
-                              animate={{ scale: 1 }}
-                              transition={{ type: 'spring', delay: 0.3 }}
-                            >
-                              {progress}%
-                            </motion.span>
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Progres Hari Ini</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedToday} / {dueToday.length} selesai</p>
-                      </div>
+             {/* Progress Ring */}
+            <div className="mb-10">
+              <div className="grid md:grid-cols-2 gap-6 items-center bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                <div className="flex items-center gap-6">
+                  <div className="relative w-40 h-40">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle cx="80" cy="80" r="72" fill="none" stroke="#f3f4f6" strokeWidth="12" className="dark:stroke-gray-800" />
+                      <motion.circle
+                        cx="80" cy="80" r="72" fill="none" stroke="url(#progressGradient)" strokeWidth="12"
+                        strokeDasharray={`${progress * 4.52} 452`} strokeDashoffset="0" strokeLinecap="round"
+                        className="transition-all duration-1000 ease-out"
+                        initial={{ pathLength: 0 }} animate={{ pathLength: progress / 100 }}
+                      />
+                      <defs>
+                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#3b82f6" />
+                          <stop offset="100%" stopColor="#8b5cf6" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <motion.span className="text-5xl font-extrabold text-gray-900 dark:text-white" initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                        {progress}<span className="text-2xl font-bold">%</span>
+                      </motion.span>
                     </div>
-                    {dueToday.length > 0 && (
-                      <motion.div
-                        className="text-right hidden sm:block"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">Sisa</p>
-                        <p className="text-3xl font-bold text-gray-900 dark:text-white">{dueToday.length - completedToday}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">habit lagi</p>
-                      </motion.div>
-                    )}
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Progres Harian</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">
+                      Kamu sudah menyelesaikan <span className="font-bold text-gray-900 dark:text-white">{completedToday}</span> dari <span className="font-bold text-gray-900 dark:text-white">{dueToday.length}</span> habit hari ini.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-5 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Habit</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalCount}</p>
+                  </div>
+                  <div className="p-5 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Sisa Tugas</p>
+                    <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{dueToday.length - completedToday}</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Habits List */}
