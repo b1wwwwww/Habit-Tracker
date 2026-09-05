@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #3b82f6;
+  --color-primary: #6366f1;
   --color-primary-foreground: #ffffff;
   --color-secondary: #f1f5f9;
   --color-secondary-foreground: #1e293b;
@@ -11,23 +11,40 @@
   --color-muted-foreground: #64748b;
   --color-border: #e2e8f0;
   --color-input: #e2e8f0;
-  --color-ring: #3b82f6;
+  --color-ring: #6366f1;
   --color-background: #f8fafc;
-  --color-foreground: #1e293b;
+  --color-foreground: #0f172a;
   --color-card: #ffffff;
   --color-card-foreground: #1e293b;
   --color-popover: #ffffff;
   --color-popover-foreground: #1e293b;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 1.75rem;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(99,102,241,0.08), transparent 60%),
+      radial-gradient(1000px 500px at 90% 0%, rgba(16,185,129,0.07), transparent 60%),
+      #f8fafc;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  .dark body {
+    background:
+      radial-gradient(900px 500px at 10% -10%, rgba(99,102,241,0.12), transparent 60%),
+      radial-gradient(800px 400px at 90% 0%, rgba(16,185,129,0.08), transparent 60%),
+      #020617;
   }
 }
 
@@ -39,4 +56,40 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+  .glass {
+    backdrop-filter: blur(16px);
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(226,232,240,0.8);
+  }
+  .dark .glass {
+    background: rgba(15,23,42,0.6);
+    border: 1px solid rgba(51,65,85,0.6);
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  @keyframes flicker {
+    0%, 100% { transform: scale(1) rotate(0); }
+    25% { transform: scale(1.08) rotate(1deg); }
+    50% { transform: scale(0.98) rotate(-1deg); }
+  }
+  .animate-float { animation: float 4s ease-in-out infinite; }
+  .animate-flicker { animation: flicker 1.4s ease-in-out infinite; }
 }
