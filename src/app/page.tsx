@@ -345,13 +345,28 @@ export default function LandingPage() {
                 transition={{ duration: 0.5 }}
               >
                 <div className="relative">
-                  <div className="aspect-video rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden">
-                    <div className="text-center p-8">
-                      <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-                        <Target className="w-12 h-12 text-white" />
+                  <div className="aspect-video rounded-2xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-emerald-500/10 border border-gray-200 dark:border-gray-700 overflow-hidden shadow-2xl">
+                    <div className="h-full flex flex-col p-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">DASHBOARD HARI INI</span>
+                        <div className="flex gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                          <div className="w-2 h-2 rounded-full bg-blue-500/30"></div>
+                          <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                        </div>
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Preview Dashboard</h3>
-                      <p className="text-gray-600 dark:text-gray-300">UI bersih, intuitif, dan menampilkan progres real-time</p>
+                      <div className="flex-1 flex flex-col items-center justify-center gap-3">
+                        <div className="w-16 h-16 rounded-full border-4 border-gray-200 dark:border-gray-600 border-t-blue-500 animate-spin"></div>
+                        <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">85% Selesai Hari Ini</p>
+                        <div className="flex gap-2 mt-2">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-orange-600 dark:text-orange-400 bg-orange-100/80 dark:bg-orange-900/40 px-2.5 py-1 rounded-full">
+                            <span>🔥</span> 7 hari
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-900/40 px-2.5 py-1 rounded-full">
+                            ✓ 6/7 habit
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <motion.div
@@ -386,6 +401,59 @@ export default function LandingPage() {
                   </div>
                 </div>
               </motion.div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20 md:py-28 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+          <div className="container mx-auto px-6">
+            <motion.div
+              className="text-center mb-16"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <span className="inline-block px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-sm font-medium mb-4">
+                CERITA PENGGUNA
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+                Disukai oleh ribuan orang
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                Dengarkan pengalaman nyata dari pengguna HabitTracker yang telah mengubah hidup mereka
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {[
+                { name: 'Budi Santoso', role: 'Product Manager', avatar: '👨‍💼', text: 'HabitTracker membantu saya konsisten olahraga setiap hari. Streak system-nya sangat memotivasi!' },
+                { name: 'Siti Nurhaliza', role: 'Designer', avatar: '👩‍🎨', text: 'UI yang cantik dan intuitif. Saya selalu excited membuka app untuk check-in habit saya.' },
+                { name: 'Ahmad Wijaya', role: 'Developer', avatar: '👨‍💻', text: 'Heatmap analytics-nya seperti GitHub. Motivasi saya naik drastis melihat kontribusi harian.' },
+              ].map((testimonial, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  className="p-6 rounded-2xl bg-white dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="text-4xl">{testimonial.avatar}</div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{testimonial.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 mb-3">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className="text-amber-400">★</span>
+                    ))}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">"{testimonial.text}"</p>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>

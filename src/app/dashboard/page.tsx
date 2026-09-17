@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Target, Menu, LogOut, User, Bell, BarChart3, Sun, Moon, ArrowRight } from 'lucide-react'
+import confetti from 'canvas-confetti'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -133,6 +134,14 @@ export default function DashboardPage() {
   const handleCheckIn = async (habitId: string, value: number, note?: string) => {
     try {
       await checkIn(habitId, value, note)
+      if (progress === 100) {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#3b82f6', '#8b5cf6', '#10b981']
+        })
+      }
     } finally {
       fetchHabits().catch(() => {})
       fetchDashboard().catch(() => {})
