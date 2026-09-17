@@ -40,6 +40,7 @@ model Habit {
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   logs            HabitLog[]
 
+  @@index([userId])
   @@map("habits")
 }
 
@@ -50,6 +51,7 @@ model HabitLog {
   completedDate DateTime    @map("completed_date")
   currentValue  Int         @default(0) @map("current_value")
   status        LogStatus   @default(COMPLETED)
+  note          String?     @map("note")
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
 
@@ -57,6 +59,7 @@ model HabitLog {
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([habitId, completedDate])
+  @@index([userId, completedDate])
   @@map("habit_logs")
 }
 

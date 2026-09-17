@@ -45,6 +45,7 @@ export async function POST(
         data: {
           currentValue: validatedData.currentValue,
           status: validatedData.status,
+          note: validatedData.note,
         },
       })
     } else {
@@ -55,6 +56,7 @@ export async function POST(
           completedDate: today,
           currentValue: validatedData.currentValue,
           status: validatedData.status,
+          note: validatedData.note,
         },
       })
     }

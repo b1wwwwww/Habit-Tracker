@@ -26,6 +26,7 @@ export const habitSchema = z.object({
 export const checkInSchema = z.object({
   currentValue: z.number().int().min(0).default(1),
   status: z.enum(['COMPLETED', 'PARTIAL', 'SKIPPED']).default('COMPLETED'),
+  note: z.string().max(500).optional().nullable(),
 })
 
 export type RegisterInput = z.infer<typeof registerSchema>

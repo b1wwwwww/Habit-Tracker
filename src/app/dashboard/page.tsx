@@ -130,11 +130,10 @@ export default function DashboardPage() {
     setShowHabitForm(true)
   }
 
-  const handleCheckIn = async (habitId: string, value: number) => {
+  const handleCheckIn = async (habitId: string, value: number, note?: string) => {
     try {
-      await checkIn(habitId, value)
+      await checkIn(habitId, value, note)
     } finally {
-      // refresh dashboard and habits in background to sync with server
       fetchHabits().catch(() => {})
       fetchDashboard().catch(() => {})
       fetchStreaks().catch(() => {})

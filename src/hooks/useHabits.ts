@@ -12,7 +12,7 @@ interface UseHabitsReturn {
   createHabit: (data: HabitInput) => Promise<Habit>
   updateHabit: (id: string, data: HabitInput) => Promise<Habit>
   deleteHabit: (id: string) => Promise<void>
-  checkIn: (habitId: string, value: number) => Promise<HabitLog>
+  checkIn: (habitId: string, value: number, note?: string) => Promise<HabitLog>
   undoCheckIn: (habitId: string) => Promise<void>
 }
 
@@ -111,7 +111,7 @@ export function useHabits(): UseHabitsReturn {
   )
 
   const checkIn = useCallback(
-    async (habitId: string, value: number) => {
+    async (habitId: string, value: number, note?: string) => {
       // optimistic update: update local habit state immediately
       const prev = habits
       const prevSnapshot = [...prev]
@@ -131,6 +131,7 @@ export function useHabits(): UseHabitsReturn {
               completedDate: h.todayLog?.completedDate ?? new Date(),
               currentValue,
               status: (isCompleted ? 'COMPLETED' : 'PARTIAL') as HabitLog['status'],
+              note: note || h.todayLog?.note,
             } as HabitLog,
           }
         })
@@ -141,7 +142,7 @@ export function useHabits(): UseHabitsReturn {
           const res = await fetch(`/api/habits/${habitId}/check-in`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ currentValue: value }),
+            body: JSON.stringify({ currentValue: value, note }),
           })
           if (!res.ok) {
             const err = await res.json()

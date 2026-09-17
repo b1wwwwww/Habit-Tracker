@@ -10,7 +10,7 @@ import { format } from 'date-fns'
 
 interface HabitCardProps {
   habit: Habit & { todayLog?: HabitLog | null; currentStreak?: number; bestStreak?: number }
-  onCheckIn: (habitId: string, value: number) => Promise<void>
+  onCheckIn: (habitId: string, value: number, note?: string) => Promise<void>
   onUndo: (habitId: string) => Promise<void>
   onEdit: (habit: Habit) => void
   onDelete: (habitId: string) => void
@@ -56,6 +56,7 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
   const [showMenu, setShowMenu] = useState(false)
   const [showNumericInput, setShowNumericInput] = useState(false)
   const [inputValue, setInputValue] = useState(currentValue || targetValue)
+  const [note, setNote] = useState(todayLog?.note || '')
   const menuRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -92,8 +93,9 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
   const handleCustomInput = async () => {
     const value = parseInt(inputValue.toString(), 10)
     if (value > 0) {
-      await onCheckIn(habit.id, Math.min(value, targetValue))
+      await onCheckIn(habit.id, Math.min(value, targetValue), note)
       setShowNumericInput(false)
+      setNote('')
     }
   }
 
@@ -315,6 +317,19 @@ export function HabitCard({ habit, onCheckIn, onUndo, onEdit, onDelete }: HabitC
                 >
                   +
                 </button>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Catatan (Opsional)</label>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Bagaimana perasaanmu? Tantangan apa yang dihadapi?"
+                  className="w-full p-3 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                  rows={3}
+                  maxLength={500}
+                />
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{note.length}/500</p>
               </div>
 
               <div className="flex gap-3">
